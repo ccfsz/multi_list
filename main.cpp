@@ -7,11 +7,11 @@
 #include "boost/container/small_vector.hpp"
 
 using namespace std;
-constexpr int NumOfHooks = 10;
 
 enum HookName
 {
-    Raw=0,
+    Raw = 0,
+    NumOfHooks = 1
 };
 
 struct Hook
@@ -21,11 +21,11 @@ struct Hook
 };
 
 template <typename T>
-class Item
+struct Item
 {
     T content;
 
-    std::array<Hook, 10> hooks;
+    std::array<Hook, NumOfHooks> hooks;
 };
 
 template <typename Config>
@@ -34,7 +34,7 @@ class Container
     using ItemType = Item<typename Config::ContentTrait>;
     using LocType = uint16_t;
 
-    boost::container::small_vector<ItemType, 100> buffer;
+    boost::container::small_vector<ItemType, Config::InitialBufferSize> buffer;
 
     std::array<LocType, 10> heads;
 
@@ -45,15 +45,40 @@ public:
     void onInsert();
     void onTaken();
     void onAdjust();
+    void print()
+    {
+        std::cout<<buffer.size()<<std::endl;
+        for (auto &x : buffer)
+        {
+            std::cout <<" -> " << x.content;
+        }
+        std::cout << std::endl;
+    }
+};
+
+struct BasicCarConfig
+{
+    static constexpr int InitialBufferSize = 500;
+    using ContentTrait = int64_t;
+};
+
+struct LandRoverCofig:BasicCarConfig
+{
+    using OrderIdType = int64_t;
+};
+
+struct MercedesCofig:BasicCarConfig
+{
+    using OrderIdType = std::string;
+};
+
+struct RenaultCofig:BasicCarConfig
+{
+    using OrderIdType = int32_t;
 };
 
 int main()
 {
-    vector<string> msg{"Hello", "C++", "World"};
-
-    for (const string &word : msg)
-    {
-        cout << word << " ";
-    }
-    cout << endl;
+    Container<LandRoverCofig> container;
+    container.print();
 }
